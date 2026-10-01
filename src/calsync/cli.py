@@ -9,7 +9,7 @@ from datetime import date
 from pathlib import Path
 
 from . import __version__
-from .classify import classify_all, summarize
+from .classify import classify_all, filter_ignored, summarize
 from .config import USER_CONFIG, ConfigError, Config, default_config_text, load_config
 from .models import Lesson
 from .pipeline import SyncResult, run_sync
@@ -23,16 +23,18 @@ def academic_year(today: date) -> tuple[date, date]:
     return date(first_year, 9, 1), date(first_year + 1, 8, 31)
 
 
-def print_classification(lessons: list[Lesson], config: Config) -> None:
+def print_classification(lessons: list[Lesson], config: Config, *, show_all: bool = False) -> None:
     summary = summarize(lessons, classify_all(lessons, config), config)
     print("\nClassification")
     for category in config.all_categories:
         titles = summary[category.name]
         print(f"\n  {category.name}  ->  '{category.calendar}'  ({sum(titles.values())} sessions)")
-        for title, count in sorted(titles.items(), key=lambda kv: (-kv[1], kv[0]))[:12]:
+        shown = sorted(titles.items(), key=lambda kv: (-kv[1], kv[0]))
+        limit = None if show_all else 12
+        for title, count in shown[:limit]:
             print(f"      {count:>3} x {title}")
-        if len(titles) > 12:
-            print(f"      ... and {len(titles) - 12} more titles")
+        if limit and len(titles) > limit:
+            print(f"      ... and {len(titles) - limit} more titles (use --verbose to list all)")
 
 
 def print_result(result: SyncResult) -> None:
@@ -99,6 +101,8 @@ def build_parser() -> argparse.ArgumentParser:
                         help="fetch and classify only; do not touch Google Calendar")
     parser.add_argument("--dry-run", action="store_true",
                         help="compare with Google Calendar and show the changes without applying them")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="list every course title in the classification, not just the top ones")
     parser.add_argument("--force-delete", action="store_true",
                         help="allow deleting a large share of existing events")
     parser.add_argument("--from-file", type=Path, metavar="JSON",
@@ -120,8 +124,12 @@ def main(argv: list[str] | None = None) -> int:
         config = load_config(args.config)
         lessons = load_lessons(args, config, args.start, args.end)
         lessons = [lesson for lesson in lessons if args.start <= lesson.start.date() <= args.end]
-        print(f"{len(lessons)} sessions between {args.start} and {args.end}.")
-        print_classification(lessons, config)
+        lessons, ignored = filter_ignored(lessons, config)
+        print(
+            f"{len(lessons)} sessions between {args.start} and {args.end} "
+            f"({len(ignored)} ignored by the [ignore] rules)."
+        )
+        print_classification(lessons, config, show_all=args.verbose)
         if args.preview:
             return 0
 

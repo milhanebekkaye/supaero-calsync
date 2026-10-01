@@ -19,6 +19,21 @@ def classify(lesson: Lesson, config: Config) -> Category:
     return config.default
 
 
+def is_ignored(lesson: Lesson, config: Config) -> bool:
+    """True when the lesson matches an [ignore] rule and must not reach the calendar."""
+    text = lesson.searchable_text
+    return any(rule.search(text) for rule in config.ignore)
+
+
+def filter_ignored(lessons: list[Lesson], config: Config) -> tuple[list[Lesson], list[Lesson]]:
+    """Split lessons into (kept, ignored)."""
+    kept: list[Lesson] = []
+    ignored: list[Lesson] = []
+    for lesson in lessons:
+        (ignored if is_ignored(lesson, config) else kept).append(lesson)
+    return kept, ignored
+
+
 def classify_all(lessons: list[Lesson], config: Config) -> dict[str, Category]:
     """Map lesson id -> category for a whole timetable."""
     return {lesson.id: classify(lesson, config) for lesson in lessons}

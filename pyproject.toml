@@ -11,6 +11,8 @@ requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Milhane Bekkaye" }]
 dependencies = [
+    "certifi",
+    "truststore>=0.9",
     "playwright>=1.45",
     "google-api-python-client>=2.100",
     "google-auth-oauthlib>=1.2",

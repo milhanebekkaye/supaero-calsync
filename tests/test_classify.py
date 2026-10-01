@@ -21,6 +21,12 @@ def category_of(config, **kwargs):
         ({"code": "BE", "unit": "Structures", "description": "BE noté"}, "critical"),
         ({"code": "BE", "unit": "Structures (BE notée)"}, "critical"),
         ({"code": "EX", "unit": "Thermodynamique"}, "critical"),
+        # real title from the portal: "ex" inside "ex-2A" must not mean "exam"
+        ({"code": "PRE", "unit": "Fondation (pour les ex-2A) + Alumnis + OSE"}, "classes"),
+        ({"code": "CM", "unit": "Contrôle (ex)"}, "classes"),
+        ({"code": "ORAUX", "unit": "Projet Ingénierie et Entreprise"}, "critical"),
+        ({"code": "ORAUX", "unit": "Forum des langues"}, "critical"),
+        ({"code": "BE", "unit": "Séminaires"}, "be"),
         ({"code": "CM", "unit": "Examen de Physique"}, "critical"),
         ({"code": "CM", "unit": "Mécanique", "is_exam": True}, "critical"),
         ({"code": None, "unit": None, "description": "Partiel de maths"}, "critical"),
@@ -63,3 +69,41 @@ def test_config_validation():
     with pytest.raises(ConfigError, match="own calendar"):
         parse_config('[default]\nname="d"\ncalendar="same"\ncolor_id="1"\n'
                      '[[categories]]\nname="a"\ncalendar="same"\ncolor_id="2"')
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "ignored"),
+    [
+        ({"code": "REU", "unit": None, "description": "VACANCES DE NOEL"}, True),
+        ({"code": "REU", "unit": None, "description": "FERIE"}, True),
+        ({"code": "REU", "unit": None, "description": "Festival futurs proches (pas de cours)"}, True),
+        ({"code": "PRE", "unit": "Présentation FILIERES :"}, True),
+        ({"code": "PRE", "unit": "Assistante sociale"}, True),
+        ({"code": "REU", "unit": "Séminaires"}, False),
+        ({"code": "REU", "unit": None, "description": "Village entreprises"}, False),
+        ({"code": "CM", "unit": "Machine Learning"}, False),
+        ({"code": "BEN", "unit": "Machine Learning"}, False),
+        # a title that merely contains the letters 'pre' must not be dropped
+        ({"code": "CM", "unit": "Prédiction et estimation"}, False),
+    ],
+)
+def test_ignore_rules(config, kwargs, ignored):
+    from calsync.classify import is_ignored
+
+    assert is_ignored(parse_lesson(raw_session(1, **kwargs)), config) is ignored
+
+
+def test_filter_ignored_splits_lessons(config):
+    from calsync.classify import filter_ignored
+
+    lessons = [
+        parse_lesson(raw_session(1, code="CM", unit="Maths")),
+        parse_lesson(raw_session(2, code="PRE", unit="Accueil")),
+    ]
+    kept, dropped = filter_ignored(lessons, config)
+    assert [lesson.id for lesson in kept] == ["1"] and [lesson.id for lesson in dropped] == ["2"]
+
+
+def test_invalid_ignore_rule_is_reported():
+    with pytest.raises(ConfigError, match="ignore"):
+        parse_config('[default]\nname="d"\ncalendar="c"\ncolor_id="1"\n[ignore]\nrules=["("]')

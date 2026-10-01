@@ -34,6 +34,7 @@ class Config:
     timezone: str
     categories: tuple[Category, ...]  # ordered, first match wins
     default: Category = field(default=None)  # type: ignore[assignment]
+    ignore: tuple[re.Pattern[str], ...] = ()  # sessions to leave out entirely
 
     @property
     def all_categories(self) -> tuple[Category, ...]:
@@ -84,13 +85,19 @@ def parse_config(text: str) -> Config:
     if len(set(calendars)) != len(calendars):
         raise ConfigError("each category needs its own calendar name")
 
+    try:
+        ignore = tuple(re.compile(p, re.IGNORECASE) for p in raw.get("ignore", {}).get("rules", []))
+    except re.error as exc:
+        raise ConfigError(f"[ignore]: invalid regular expression: {exc}") from exc
+
     portal = raw.get("portal", {})
     return Config(
         portal_url=portal.get("url", ""),
-        browser=portal.get("browser", "chrome"),
+        browser=portal.get("browser", "auto"),
         timezone=raw.get("google", {}).get("timezone", "Europe/Paris"),
         categories=categories,
         default=default,
+        ignore=ignore,
     )
 
 

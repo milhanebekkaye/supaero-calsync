@@ -18,7 +18,7 @@ The school portal has no calendar export, so students re-type their timetable or
 
 ## How it works
 
-1. **Browser login** (`browser.py`): opens the portal in your own Chrome/Edge via Playwright with a dedicated, persistent profile. The portal's single-page app authenticates API calls with a bearer token; the tool reads that header from the app's first authenticated request. The token stays in memory and is never written to disk.
+1. **Browser login** (`browser.py`): starts your own Chrome, Edge or Brave as a normal window (no automation switches, because SSO-protected sites can stall on browsers that advertise being remote-controlled) with a dedicated, persistent profile, then attaches to it over the DevTools protocol. The portal's single-page app authenticates API calls with a bearer token; the tool reads that header from the app's first authenticated request. The token stays in memory and is never written to disk.
 2. **Fetch** (`portal.py`): pulls the sessions month by month over plain HTTPS and normalises them into `Lesson` objects (UTC to Europe/Paris, rooms, instructors, groups).
 3. **Classify** (`classify.py`, `config.py`): each lesson goes to the first matching category; unmatched lessons go to the default one.
 4. **Plan** (`sync.py`): a pure function compares the desired events with those already in Google (identified by a private marker and the session id) and produces `create / update / delete` lists. A content fingerprint avoids rewriting events that did not change.
@@ -29,7 +29,7 @@ A guard refuses to delete more than half of your existing events in one run, so 
 ## Requirements
 
 - Python 3.11+
-- Google Chrome or Microsoft Edge installed (no browser download needed)
+- Google Chrome, Microsoft Edge or Brave installed (found automatically; no browser download needed)
 - A Google account, and a one-time Google Cloud setup (below)
 
 ## Install
@@ -96,10 +96,12 @@ color_id = "11"             # Google colour index 1-11 (11 = tomato red)
 prefix = "🔴 "              # added to every event title
 exam_flag = true            # also match sessions the portal flags as exams
 reminders = [1440, 60]      # popup reminders, in minutes before the start
-rules = ['\bBEN\b', '\bBE\s*not[ée]e?s?\b', '\bex(am(en)?s?)?\b']
+rules = ['\bBEN\b', '^EX\b', '\bexam(en)?s?\b']
 ```
 
 Rules are case-insensitive regular expressions matched against `"<activity code> <course title> <session description>"`.
+
+An `[ignore]` section lists sessions that should never reach the calendar (holidays, bank holidays, start-of-year information sessions). Ignored sessions that an earlier run had already added are removed on the next sync.
 
 **Why one calendar per category instead of one colour per event?** Apple Calendar displays only the colour of a whole calendar and ignores per-event colours set in Google. Separate calendars make the colour show up everywhere.
 

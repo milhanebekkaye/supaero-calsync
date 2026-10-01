@@ -63,3 +63,12 @@ def test_parse_lessons_sorted_chronologically():
         ]
     )
     assert [lesson.id for lesson in lessons] == ["1", "2"]
+
+
+def test_ssl_context_keeps_verification_on():
+    import ssl
+
+    from calsync.portal import _ssl_context
+
+    context = _ssl_context()
+    assert context.verify_mode == ssl.CERT_REQUIRED and context.check_hostname

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import ssl
 import time
 import urllib.error
 import urllib.request
@@ -10,6 +11,8 @@ from datetime import date, datetime, timedelta
 from typing import Any
 from urllib.parse import urlencode, urlsplit
 from zoneinfo import ZoneInfo
+
+import certifi
 
 from .models import Lesson
 
@@ -19,6 +22,24 @@ PARIS = ZoneInfo("Europe/Paris")
 
 class PortalError(RuntimeError):
     """The portal API rejected a request or returned something unusable."""
+
+
+def _ssl_context() -> ssl.SSLContext:
+    """TLS context that trusts the operating system's certificate store.
+
+    Python often cannot verify sites that browsers accept, for two reasons: some
+    servers omit their intermediate certificates (browsers fetch the missing ones,
+    Python does not), and some networks inspect HTTPS with a certificate installed
+    in the system keychain that Python's own bundle has never heard of. Using the
+    OS store, like a browser does, handles both. Verification stays fully on.
+    Falls back to certifi's bundle if the OS-store helper is unavailable.
+    """
+    try:
+        import truststore
+
+        return truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    except ImportError:
+        return ssl.create_default_context(cafile=certifi.where())
 
 
 # --------------------------------------------------------------------------- #
@@ -70,7 +91,7 @@ def fetch_interventions(
         payload: dict[str, Any] | None = None
         for attempt in (1, 2, 3):
             try:
-                with urllib.request.urlopen(request, timeout=timeout) as response:
+                with urllib.request.urlopen(request, timeout=timeout, context=_ssl_context()) as response:
                     payload = json.load(response)
                 break
             except urllib.error.HTTPError as exc:

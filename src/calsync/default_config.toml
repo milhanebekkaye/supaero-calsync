@@ -15,13 +15,24 @@
 [portal]
 # Page opened in the browser window; its host is also where the API lives.
 url = "https://isaesupaero-production.np-auriga.nfrance.net/#/mainContent/menuEntry/227/planning"
-# Browser Playwright drives: "chrome", "msedge", or "chromium" (bundled one).
-browser = "chrome"
+# Browser to open: "auto" (first Chrome/Edge/Brave/Chromium found) or a path to one.
+browser = "auto"
 
 [google]
 timezone = "Europe/Paris"
 
-# --- Critical: graded lab work and exams. Never miss these. ----------------
+# Sessions matching any of these rules are left out of the calendar entirely (and
+# removed from it if a previous run had added them): holidays, bank holidays and
+# start-of-year information sessions (activity code PRE).
+[ignore]
+rules = [
+    '^PRE\b',
+    '\bVACANCES\b',
+    '\bF[ÉE]RI[ÉE]S?\b',
+    '\bpas de cours\b',
+]
+
+# --- Critical: graded lab work, exams and orals. Never miss these. ----------------
 [[categories]]
 name = "critical"
 calendar = "Supaero · Graded (BEN / Exams)"
@@ -32,7 +43,9 @@ reminders = [1440, 60]      # minutes before start: 1 day and 1 hour
 rules = [
     '\bBEN\b',
     '\bBE\s*not[ée]e?s?\b',
-    '\bex(am(en)?s?)?\b',
+    '^EX\b',                  # activity code EX: always the first word of the matched text
+    '^ORAUX\b',               # oral exams and project defences
+    '\bexam(en)?s?\b',
     '\bpartiels?\b',
 ]
 
