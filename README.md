@@ -38,7 +38,7 @@ A guard refuses to delete more than half of your existing events in one run, so 
 git clone https://github.com/<your-username>/supaero-calsync.git
 cd supaero-calsync
 python3 -m venv .venv && source .venv/bin/activate
-pip install -e .
+pip install -e .          # note the final dot: it means "this folder"
 ```
 
 ## Google setup (one time, about 10 minutes)
@@ -47,9 +47,11 @@ The tool writes to your calendar through the official Google Calendar API, so yo
 
 1. Open the [Google Cloud console](https://console.cloud.google.com/) and create a project (any name).
 2. **APIs & Services → Library**: enable the **Google Calendar API**.
-3. **APIs & Services → OAuth consent screen**: choose **External**, fill in the app name and your email, and add yourself under **Test users**.
-4. Still on the consent screen, click **Publish app** (status "In production"). This matters: apps left in "Testing" have refresh tokens that expire after 7 days, which would force a new sign-in every week. You will see an "unverified app" warning at first sign-in; that is expected for a personal client.
-5. **APIs & Services → Credentials → Create credentials → OAuth client ID → Desktop app**. Download the JSON file.
+3. Open **Google Auth Platform** (formerly "OAuth consent screen") and click **Get started**:
+   - **Branding**: app name (e.g. `supaero-calsync`), your email as user support email, and your email as developer contact. Leave *Authorized domains* empty: it is only needed for web apps, and this one runs on your machine.
+   - **Audience**: choose **External**.
+4. Still under **Audience**, click **Publish app** (status "In production"). This matters: apps left in "Testing" have refresh tokens that expire after 7 days, which would force a new sign-in every week. You will see an "unverified app" warning at first sign-in; that is expected for a personal client.
+5. Under **Clients**, **Create client**, application type **Desktop app**, then download the JSON file.
 6. Save it as `~/.config/supaero-calsync/credentials.json`.
 
 The first run opens a browser tab to authorise access and stores a token in `~/.config/supaero-calsync/google-token.json` (permissions `600`). Neither file is ever inside the repository.

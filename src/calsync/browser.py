@@ -102,7 +102,13 @@ def acquire_token(
         try:
             context.on("request", on_request)
             page = context.pages[0] if context.pages else context.new_page()
-            page.goto(url, wait_until="domcontentloaded")
+            try:
+                # "commit" returns as soon as the navigation starts. The portal chains
+                # redirects through the school's SSO, which can take well over 30 s to
+                # settle, and the user may be signing in during that time.
+                page.goto(url, wait_until="commit", timeout=60_000)
+            except PlaywrightError:
+                print("The portal is slow to load; waiting for you to sign in...")
 
             started = last_nudge = time.monotonic()
             announced = False
