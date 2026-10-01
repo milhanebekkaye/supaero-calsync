@@ -10,7 +10,7 @@ def test_month_chunks_cover_range_without_gaps():
     assert chunks[0] == (date(2026, 9, 15), date(2026, 9, 30))
     assert chunks[-1] == (date(2027, 1, 1), date(2027, 1, 10))
     assert len(chunks) == 5
-    for (_, previous_end), (next_start, _) in zip(chunks, chunks[1:]):
+    for (_, previous_end), (next_start, _) in zip(chunks, chunks[1:], strict=False):
         assert (next_start - previous_end).days == 1
 
 

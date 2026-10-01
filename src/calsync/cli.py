@@ -10,7 +10,7 @@ from pathlib import Path
 
 from . import __version__
 from .classify import classify_all, filter_ignored, summarize
-from .config import USER_CONFIG, ConfigError, Config, default_config_text, load_config
+from .config import USER_CONFIG, Config, ConfigError, default_config_text, load_config
 from .models import Lesson
 from .pipeline import SyncResult, run_sync
 from .portal import PortalError, fetch_interventions, origin, parse_lessons

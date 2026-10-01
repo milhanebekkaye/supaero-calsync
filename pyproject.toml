@@ -37,3 +37,8 @@ pythonpath = ["src"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.ruff.lint]
+# An explicit rule set, so CI does not break whenever ruff changes its defaults.
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501"]  # line length is a formatting matter, not a bug

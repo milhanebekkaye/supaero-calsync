@@ -64,9 +64,7 @@ def build_plan(
     for category, events in remote.items():
         for remote_event in events:
             target = wanted.get(remote_event.lesson_id)
-            if target is None:
-                plan.deletes.append((category, remote_event.event_id, remote_event.lesson_id))
-            elif target.category != category or remote_event.lesson_id in seen:
+            if target is None or target.category != category or remote_event.lesson_id in seen:
                 plan.deletes.append((category, remote_event.event_id, remote_event.lesson_id))
             else:
                 seen.add(remote_event.lesson_id)

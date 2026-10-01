@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import os
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 from .config import CONFIG_DIR
 from .events import FINGERPRINT_KEY, LESSON_ID_KEY, MANAGED_KEY, MANAGED_VALUE
@@ -88,7 +89,7 @@ class GoogleGateway:
         self._calendar_ids: dict[str, str] | None = None
 
     @classmethod
-    def connect(cls) -> "GoogleGateway":
+    def connect(cls) -> GoogleGateway:
         from googleapiclient.discovery import build
 
         service = build("calendar", "v3", credentials=get_credentials(), cache_discovery=False)

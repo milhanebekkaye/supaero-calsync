@@ -22,7 +22,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -46,7 +46,7 @@ def token_expiry(token: str) -> datetime | None:
         payload = token.split(" ", 1)[-1].split(".")[1]
         payload += "=" * (-len(payload) % 4)
         exp = json.loads(base64.urlsafe_b64decode(payload))["exp"]
-        return datetime.fromtimestamp(int(exp), tz=timezone.utc)
+        return datetime.fromtimestamp(int(exp), tz=UTC)
     except (IndexError, KeyError, ValueError, TypeError):
         return None
 
