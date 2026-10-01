@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# Never commit credentials, tokens, sessions or personal timetable data
+credentials.json
+client_secret*.json
+google-token.json
+token.json
+browser-profile/
+raw*.json
+*.ics
+.env
+.DS_Store

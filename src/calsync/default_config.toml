@@ -1,0 +1,54 @@
+# supaero-calsync configuration.
+#
+# Every lesson is tested against the categories below, top to bottom; the first
+# category whose rules match wins. Anything that matches nothing lands in
+# [default]. Each category becomes its own Google calendar, because Apple
+# Calendar only shows the colour of a whole calendar, never of a single event.
+#
+# Rules are case-insensitive regular expressions, matched against
+# "<activity code> <course title> <session description>".
+#
+# color_id is a Google Calendar colour index (1-11):
+#   1 lavender  2 sage    3 grape   4 flamingo  5 banana   6 tangerine
+#   7 peacock   8 graphite 9 blueberry 10 basil  11 tomato
+
+[portal]
+# Page opened in the browser window; its host is also where the API lives.
+url = "https://isaesupaero-production.np-auriga.nfrance.net/#/mainContent/menuEntry/227/planning"
+# Browser Playwright drives: "chrome", "msedge", or "chromium" (bundled one).
+browser = "chrome"
+
+[google]
+timezone = "Europe/Paris"
+
+# --- Critical: graded lab work and exams. Never miss these. ----------------
+[[categories]]
+name = "critical"
+calendar = "Supaero · Graded (BEN / Exams)"
+color_id = "11"
+prefix = "🔴 "
+exam_flag = true            # also match anything the portal flags as an exam
+reminders = [1440, 60]      # minutes before start: 1 day and 1 hour
+rules = [
+    '\bBEN\b',
+    '\bBE\s*not[ée]e?s?\b',
+    '\bex(am(en)?s?)?\b',
+    '\bpartiels?\b',
+]
+
+# --- Lab sessions (BE) that are not graded. --------------------------------
+[[categories]]
+name = "be"
+calendar = "Supaero · BE"
+color_id = "6"
+prefix = "🟠 "
+reminders = [60]
+rules = ['\bBE\b']
+
+# --- Everything else: lectures, tutorials, languages... ---------------------
+[default]
+name = "classes"
+calendar = "Supaero · Classes"
+color_id = "8"
+prefix = ""
+reminders = []
